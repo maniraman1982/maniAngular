@@ -1,0 +1,583 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courier Management System - adminIndex</title>
+
+    <link href="assets/plugins/bootstrap/bootstrap.css" rel="stylesheet" />
+    <link href="assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="assets/plugins/pace/pace-theme-big-counter.css" rel="stylesheet" />
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <link href="assets/css/main-style.css" rel="stylesheet" />
+
+    <link href="assets/plugins/morris/morris-0.4.3.min.css" rel="stylesheet" />
+    <style>
+        #header-e1 {
+            float: left;
+            width: 33%;
+        }
+
+        #header-e2 {
+            float: right;
+            width: 33%;
+        }
+
+        #header-e3 {
+            float: left;
+            width: 33%;
+        }
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            /*z-index: 1; /* Sit on top */
+            padding-top: 100px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: #000;
+                text-decoration: none;
+                cursor: pointer;
+            }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+    <script>
+
+        var courierURLCount = 1;
+
+
+        function docApproverClick() {
+            document.getElementById('Heading').style = '';
+            document.getElementById('Heading').innerHTML = 'Record Courier Way Bill Information International List';
+
+            $(window).scrollTop(0);
+            $.ajax({
+                type: "GET",
+                contentType: 'text/plain;charset=ISO-8859-1',
+                url: "http://61.12.112.11:9090/MasterKube-Application/MasterKube/reports/general/masterkube/EnterCourierWayBillInformation",
+                dataType: "xml",
+                success: function (xml) {
+                    var buttonCtrl = '';
+                    $('#Content').remove();
+                    $('#Main').append('<div id="Content"></div>');
+                    //$('#Content').append('<input type="button" value="Courier Approvals" onclick="courierApprovalClick();"/>');
+                    $(xml).find('Name').each(function () {
+                        var btnValue = $(this).find('url').text();
+
+                        buttonCtrl = '<span class="CourierURL" style="display:none;">' + btnValue + '</span><br/>';
+                        courierURLCount++;
+                        $('#Content').append(buttonCtrl);
+                        courierApprovalClick(courierURLCount);
+                    });
+                },
+                error: function (data, excep) {
+
+                }
+            });
+        }
+
+        function docApproverLocalClick() {
+            document.getElementById('Heading').style = '';
+            document.getElementById('Heading').innerHTML = 'Record Courier Way Bill Information Local List';
+            $(window).scrollTop(0);
+            $.ajax({
+                type: "GET",
+                contentType: 'text/plain;charset=ISO-8859-1',
+                url: "http://61.12.112.11:9090/MasterKube-Application/MasterKube/reports/general/masterkube/EnterCourierWayBillInformationlocal",
+                dataType: "xml",
+                success: function (xml) {
+                    var buttonCtrl = '';
+                    $('#Content').remove();
+                    $('#Main').append('<div id="Content"></div>');
+                    //$('#Content').append('<input type="button" value="Courier Approvals" onclick="courierApprovalClick();"/>');
+                    $(xml).find('Name').each(function () {
+                        var btnValue = $(this).find('url').text();
+
+                        buttonCtrl = '<span class="CourierURL" style="display:none;">' + btnValue + '</span><br/>';
+                        courierURLCount++;
+                        $('#Content').append(buttonCtrl);
+                        courierApprovalLocalClick(courierURLCount);
+                    });
+                },
+                error: function (data, excep) {
+                }
+            });
+        }
+        //window.onload = docApproverClick;
+        var reqDates = [];
+        var empNames = [];
+        var empDeps = [];
+        var prjctNames = [];
+        var docDescs = [];
+        var purposeofCours = [];
+        var recvAddrwithTels = [];
+        var recvCourierWayBillInfo = [];
+        var urlContent = 1;
+        function courierApprovalClick(courierURLCount) {
+            $(window).scrollTop(0);
+            var rows = '';
+            var acceptRow = '';
+            var denyRow = '';
+            var singleRow = '';
+            var courierURLsControl = document.getElementsByClassName('CourierURL');
+            var courierURLs = [];
+            for (i = 0; i < courierURLsControl.length; i++) {
+                courierURLs[i] = courierURLsControl[i].innerHTML;
+            }
+
+            $('#Content').remove();
+            $('#Main').append('<div id="Content"></div>');
+            $('#Content').append('<table class="table table-striped table-bordered table-hover"><thead><tr><th><center>Courier Request Date</center></th><th><center>Employee Name</center></th><th><center>Employee Department</center></th><th><center>Project Name</center></th><th><center>Document Description</center></th><th><center>Purpose Of Courier</center></th><th><center>Receiver Address With Telephone</center></th><th><center></center></th></tr></thead><tbody id="Details"></tbody></table>');
+            for (i = 0; i < courierURLs.length; i++) {
+
+                $.ajax({
+                    type: "GET",
+                    contentType: 'text/plain;charset=ISO-8859-1',
+                    url: courierURLs[i],
+                    dataType: "xml",
+                    success: function (xml) {
+
+                        var reqDates = [];
+                        var empNames = [];
+                        var empDeps = [];
+                        var prjctNames = [];
+                        var docDescs = [];
+                        var purposeofCours = [];
+                        var recvAddrwithTels = [];
+                        var recvCourierWayBillInfo = [];
+
+
+                        var approveURLs = [];
+                        var denyURLs = [];
+
+                        $(xml).find('Element').each(function () {
+
+                            var packageInfoName = $(this).find('Name').text();
+                            var packageInfoType = $(this).find('Type').text();
+                            var packageInfoValue = $(this).find('Value').text();
+
+                            if (packageInfoName.toLowerCase().includes("courierrequestdate")) {
+                                reqDates.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("employeename")) {
+                                empNames.push(packageInfoValue);
+
+                            }
+                            else if (packageInfoName.toLowerCase().includes("employeedepartment")) {
+                                empDeps.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("projectname")) {
+                                prjctNames.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("documentdescription")) {
+                                docDescs.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("purposeofcourier")) {
+                                purposeofCours.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("receiveraddresswithtelephone")) {
+                                recvAddrwithTels.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("recordcourierwaybillinformation")) {
+                                recvCourierWayBillInfo.push(packageInfoValue);
+                            }
+                        });
+
+                        for (k = 0; k < reqDates.length; k++) {
+
+                            singleRow = '<tr><td>' + reqDates[k] + '</td><td>' + empNames[k] + '</td><td>' + empDeps[k] + '</td><td>' + prjctNames[k] + '</td><td>' + docDescs[k] + '</td><td>' + purposeofCours[k] + '</td><td>' + recvAddrwithTels[k] + '</td><td style="text-align:center;"><input type="button" class="btn btn-xs btn-success" value="Record Courier Way Bill" onclick="recordBillClick(' + urlContent + ');"/><span  style="display:none;" id="recordURL-' + urlContent + '">' + recvCourierWayBillInfo[k] + '</span></td></tr>';
+
+                            $('#Details').append(singleRow);
+
+                            urlContent++;
+                        }
+                    },
+                    error: function (data, excep) {
+
+                    }
+                });
+            }
+        }
+
+        function courierApprovalLocalClick(courierURLCount) {
+            $(window).scrollTop(0);
+            var rows = '';
+            var acceptRow = '';
+            var denyRow = '';
+            var singleRow = '';
+            var courierURLsControl = document.getElementsByClassName('CourierURL');
+            var courierURLs = [];
+            for (i = 0; i < courierURLsControl.length; i++) {
+                courierURLs[i] = courierURLsControl[i].innerHTML;
+            }
+
+            $('#Content').remove();
+            $('#Main').append('<div id="Content"></div>');
+            $('#Content').append('<table class="table table-striped table-bordered table-hover"><thead><tr><th><center>Courier Request Date</center></th><th><center>Employee Name</center></th><th><center>Employee Department</center></th><th><center>Project Name</center></th><th><center>Document Description</center></th><th><center>Purpose Of Courier</center></th><th><center>Receiver Address With Telephone</center></th><th><center></center></th></tr></thead><tbody id="Details"></tbody></table>');
+            for (i = 0; i < courierURLs.length; i++) {
+
+                $.ajax({
+                    type: "GET",
+                    contentType: 'text/plain;charset=ISO-8859-1',
+                    url: courierURLs[i],
+                    dataType: "xml",
+                    success: function (xml) {
+
+                        var reqDates = [];
+                        var empNames = [];
+                        var empDeps = [];
+                        var prjctNames = [];
+                        var docDescs = [];
+                        var purposeofCours = [];
+                        var recvAddrwithTels = [];
+                        var recvCourierWayBillInfo = [];
+
+
+                        var approveURLs = [];
+                        var denyURLs = [];
+
+                        $(xml).find('Element').each(function () {
+
+                            var packageInfoName = $(this).find('Name').text();
+                            var packageInfoType = $(this).find('Type').text();
+                            var packageInfoValue = $(this).find('Value').text();
+
+                            if (packageInfoName.toLowerCase().includes("courierrequestdate")) {
+                                reqDates.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("employeename")) {
+                                empNames.push(packageInfoValue);
+
+                            }
+                            else if (packageInfoName.toLowerCase().includes("employeedepartment")) {
+                                empDeps.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("projectname")) {
+                                prjctNames.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("documentdescription")) {
+                                docDescs.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("purposeofcourier")) {
+                                purposeofCours.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("receiveraddresswithtelephone")) {
+                                recvAddrwithTels.push(packageInfoValue);
+                            }
+                            else if (packageInfoName.toLowerCase().includes("recordcourierwaybillinformation")) {
+                                recvCourierWayBillInfo.push(packageInfoValue);
+                            }
+                        });
+
+                        for (k = 0; k < reqDates.length; k++) {
+
+                            singleRow = '<tr><td>' + reqDates[k] + '</td><td>' + empNames[k] + '</td><td>' + empDeps[k] + '</td><td>' + prjctNames[k] + '</td><td>' + docDescs[k] + '</td><td>' + purposeofCours[k] + '</td><td>' + recvAddrwithTels[k] + '</td><td style="text-align:center;"><input type="button" class="btn btn-xs btn-success" value="Record Courier Way Bill" onclick="recordBillLocalClick(' + urlContent + ');"/><span  style="display:none;" id="recordURL-' + urlContent + '">' + recvCourierWayBillInfo[k] + '</span></td></tr>';
+
+                            $('#Details').append(singleRow);
+
+                            urlContent++;
+                        }
+                    },
+                    error: function (data, excep) {
+
+                    }
+                });
+            }
+        }
+
+        function recordBillClick(id) {
+            $(window).scrollTop(0);
+            var recordUrl = $('#recordURL-' + id).text();
+
+            //alert('recordUrl = ' + recordUrl);
+
+            $('#Content').remove();
+            $('#Main').append('<div id="Content"></div>');
+
+            var chkAsk = recordUrl.split('/');
+
+            var num = 0;
+
+            var name = '';
+
+            for (t = 0; t < chkAsk.length; t++) {
+                if (!isNaN(chkAsk[t])) {
+                    num = chkAsk[t];
+                }
+                if (chkAsk[t].includes('DomesticCourier-')) {
+                    name = chkAsk[t];
+
+                }
+            }
+            //alert('name =' + name);
+            $('#Content').append('<div align="center"><div><table><tr><td><br><label>Courier Agency</label></td><td><br><input id="CourierAgencyText" name="CourierAgency" type="text" /></td></tr><tr><td><br><label>Document Weight</label></td><td><br><input id="DocumentWeightText" onkeypress="return isNumberKey(event)" name="DocumentWeight" type="text" /></td></tr><tr><td><br><label>Courier Amount</label></td><td><br><input id="CourierAmountText" name="CourierAmount" type="text" onkeypress="return isNumberKey(event)"    /></td></tr><tr><td><br><label>Way Bill No</label></td><td><br><input name="Waybillno"  id="WayBillNoText" type="text"   /></td></tr><tr><td><br><label>Reference Ledger Number&nbsp;&nbsp;&nbsp;</label></td><td><br><input name="ReferenceLedgerNumber" id="ReferenceLedgerNumberText" type="text" /></td></tr><tr><td><br><label>Way Bill Date</label></td><td><br><input id="WayBillDateControl" style="width:100%" type="date" /><input  id="WayBillDateHidden" name="Waybilldate" type="hidden" /></td></tr><tr><td colspan="2" style="text-align:center;"><br><input class="btn btn-primary" id="RecordClick" type="submit" value="Submit" />&nbsp;&nbsp;&nbsp;<input style="margin-left: 10px;" class="btn btn-primary" type="button" value=Back  id="refresh"  onclick=Refresh();  /></td></tr><tr><td colspan="2" style="text-align:center;"><br/><img src="loading.gif" id="loadingImage" style="width:30px;height:30px;display:none"></td></tr></table></div><input name="ask" value="true" type="hidden" /><input name="Process" value="LocalCourier" type="hidden" /><input name="askProcessValue" value="LocalCourier" type="hidden" /><input name="pid" value="' + name + '" type="hidden" /><input name="askPidValue" value="' + name + '" type="hidden" /><input name="askActionValue" value="RecordCourierWayBillInformation" type="hidden" /><input name="Action" value="RecordCourierWayBillInformation" type="hidden" /><input name="askId" value="' + num + '" type="hidden" /><input name="domain" value="masterkube" type="hidden" /><br/><br/> </div><div id="MsgDiv"></div>');
+
+            $('#WayBillDateControl').change(function () {
+                var dateFormat = $('#WayBillDateControl').val().split('-');
+
+                $('#WayBillDateHidden').val(dateFormat[2] + '/' + dateFormat[1] + '/' + dateFormat[0]);
+            });
+
+            $('#RecordClick').click(function () {
+
+                document.getElementById('loadingImage').style.display = '';
+
+                $('#Msg').remove();
+                $.ajax({
+                    type: "POST",
+                    url: "http://61.12.112.11:9090/MasterKube-Application/action/submitPayLoadService.jsp",
+                    data: {
+                        CourierAgency: $('#CourierAgencyText').val(),
+                        DocumentWeight: $('#DocumentWeightText').val(),
+                        CourierAmount: $('#CourierAmountText').val(),
+                        Waybillno: $('#WayBillNoText').val(),
+                        ReferenceLedgerNumber: $('#ReferenceLedgerNumberText').val(),
+                        Waybilldate: $('#WayBillDateHidden').val(),
+                        ask: true,
+                        Process: "DomesticCourier",
+                        askProcessValue: "DomesticCourier",
+                        pid: name,
+                        askPidValue: name,
+                        askActionValue: "RecordCourierWayBillInformation",
+                        Action: "RecordCourierWayBillInformation",
+                        askId: num,
+                        domain: "masterkube"
+                    },
+                    dataType: "text",
+                    success: function (data) {
+
+                        var chk = data.replace("}", "").split(":")[1].trim();
+                        if (chk == 'true') {
+                            $('#WayBillDateHidden').val('');
+
+                            $('#modalBody').append('<div id="Msg"><br><div class="alert alert-success" style="background-color:green;color:white;" align="center">Submitted Successfully</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                            document.getElementById('modalDiv').style.display = "block";
+                            document.getElementById('loadingImage').style.display = 'none';
+
+                        }
+                        else {
+                            $('#WayBillDateHidden').val('');
+                            $('#modalBody').append('<div id="Msg"><br><div class="alert alert-danger" style="background-color:red;color:white;" align="center">Submission Failed</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                            document.getElementById('modalDiv').style.display = "block";
+                            document.getElementById('loadingImage').style.display = 'none';
+                        }
+                    },
+                    failure: function (data) {
+
+                    },
+                    error: function (data, assd, sd) {
+
+                    }
+                });
+            });
+
+        }
+
+        function recordBillLocalClick(id) {
+            $(window).scrollTop(0);
+            var recordUrl = $('#recordURL-' + id).text();
+
+           // alert('recordUrl = ' + recordUrl);
+
+            $('#Content').remove();
+            $('#Main').append('<div id="Content"></div>');
+
+            var chkAsk = recordUrl.split('/');
+
+            var num = 0;
+
+            var name = '';
+
+            for (t = 0; t < chkAsk.length; t++) {
+                if (!isNaN(chkAsk[t])) {
+                    num = chkAsk[t];
+                }
+                if (chkAsk[t].includes('LocalCourier-')) {
+                    name = chkAsk[t];
+
+                }
+            }
+           // alert('name =' + name);
+            $('#Content').append('<div align="center"><div><table><tr><td><br><label>Courier Agency</label></td><td><br><input id="CourierAgencyText" name="CourierAgency" type="text" /></td></tr><tr><td><br><label>Document Weight</label></td><td><br><input id="DocumentWeightText" onkeypress="return isNumberKey(event)" name="DocumentWeight" type="text" /></td></tr><tr><td><br><label>Courier Amount</label></td><td><br><input id="CourierAmountText" name="CourierAmount" type="text" onkeypress="return isNumberKey(event)"    /></td></tr><tr><td><br><label>Way Bill No</label></td><td><br><input name="Waybillno"  id="WayBillNoText" type="text"   /></td></tr><tr><td><br><label>Reference Ledger Number&nbsp;&nbsp;&nbsp;</label></td><td><br><input name="ReferenceLedgerNumber" id="ReferenceLedgerNumberText" type="text" /></td></tr><tr><td><br><label>Way Bill Date</label></td><td><br><input id="WayBillDateControl" style="width:100%" type="date" /><input  id="WayBillDateHidden" name="Waybilldate" type="hidden" /></td></tr><tr><td colspan="2" style="text-align:center;"><br><input class="btn btn-primary" id="RecordClick" type="submit" value="Submit" />&nbsp;&nbsp;&nbsp;<input style="margin-left: 10px;" class="btn btn-primary" type="button" value=Back  id="refresh"  onclick=Refresh();  /></td></tr><tr><td colspan="2" style="text-align:center;"><br/><img src="loading.gif" id="loadingImage" style="width:30px;height:30px;display:none"></td></tr></table></div><input name="ask" value="true" type="hidden" /><input name="Process" value="LocalCourier" type="hidden" /><input name="askProcessValue" value="LocalCourier" type="hidden" /><input name="pid" value="' + name + '" type="hidden" /><input name="askPidValue" value="' + name + '" type="hidden" /><input name="askActionValue" value="RecordCourierWayBillInformation" type="hidden" /><input name="Action" value="RecordCourierWayBillInformation" type="hidden" /><input name="askId" value="' + num + '" type="hidden" /><input name="domain" value="masterkube" type="hidden" /><br/><br/> </div><div id="MsgDiv"></div>');
+
+            $('#WayBillDateControl').change(function () {
+                var dateFormat = $('#WayBillDateControl').val().split('-');
+
+                $('#WayBillDateHidden').val(dateFormat[2] + '/' + dateFormat[1] + '/' + dateFormat[0]);
+            });
+
+            $('#RecordClick').click(function () {
+
+                document.getElementById('loadingImage').style.display = '';
+
+                $('#Msg').remove();
+                $.ajax({
+                    type: "POST",
+                    url: "http://61.12.112.11:9090/MasterKube-Application/action/submitPayLoadService.jsp",
+                    data: {
+                        CourierAgency: $('#CourierAgencyText').val(),
+                        DocumentWeight: $('#DocumentWeightText').val(),
+                        CourierAmount: $('#CourierAmountText').val(),
+                        Waybillno: $('#WayBillNoText').val(),
+                        ReferenceLedgerNumber: $('#ReferenceLedgerNumberText').val(),
+                        Waybilldate: $('#WayBillDateHidden').val(),
+                        ask: true,
+                        Process: "LocalCourier",
+                        askProcessValue: "LocalCourier",
+                        pid: name,
+                        askPidValue: name,
+                        askActionValue: "RecordCourierWayBillInformation",
+                        Action: "RecordCourierWayBillInformation",
+                        askId: num,
+                        domain: "masterkube"
+                    },
+                    dataType: "text",
+                    success: function (data) {
+
+                        var chk = data.replace("}", "").split(":")[1].trim();
+                        if (chk == 'true') {
+                            $('#WayBillDateHidden').val('');
+
+                            $('#modalBody').append('<div id="Msg"><br><div class="alert alert-success" style="background-color:green;color:white;" align="center">Submitted Successfully</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                            document.getElementById('modalDiv').style.display = "block";
+                            document.getElementById('loadingImage').style.display = 'none';
+
+                        }
+                        else {
+                            $('#WayBillDateHidden').val('');
+                            $('#modalBody').append('<div id="Msg"><br><div class="alert alert-danger" style="background-color:red;color:white;" align="center">Submission Failed</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                            document.getElementById('modalDiv').style.display = "block";
+                            document.getElementById('loadingImage').style.display = 'none';
+                        }
+                    },
+                    failure: function (data) {
+
+                    },
+                    error: function (data, assd, sd) {
+
+                    }
+                });
+            });
+
+        }
+
+        function modalClose() {
+            document.getElementById('modalDiv').style.display = "none";
+        }
+
+        function isNumberKey(evt) {
+
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if (charCode != 46 && charCode > 31
+              && (charCode < 48 || charCode > 57))
+                return false;
+
+            return true;
+        }
+
+        function Refresh() {
+            $(window).scrollTop(0);
+            var $input = $('#refresh');
+            location.reload(true);
+        }
+    </script>
+</head>
+<body>
+    <div id="wrapper">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="navbar" style="background-color:white;">
+            <div id="header-e1">
+                <br />
+                &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;  <img src="bgr-logo.png" alt="" style="width:100px;height:50px;" />
+                <h1> </h1>
+            </div>
+            <div id="header-e3">
+                <center><h3 style="color:#337ab7">Courier Management System</h3></center>
+            </div>
+            <div id="header-e2">
+                <br />
+                <br />
+                <a href="login.html"><img src="logout.gif" title="Logout" alt="" style="width:30px;height:30px;float:right; margin-right: 2cm;" /> </a>
+                <p> &nbsp;&nbsp; </p>
+            </div>
+        </nav>
+        <nav class="navbar-default navbar-static-side" role="navigation" style="background-color:#337ab7;border-bottom: 1px solid aliceblue">
+            <div class="sidebar-collapse" style="background-color:#337ab7;">
+                <ul class="nav" id="side-menu" style="background-color:#337ab7;">
+                    <li>
+                        <div class="user-section" style="background-color:#337ab7;border-bottom:#337ab7;">
+                            <br />
+                            <p><center><h3>Admin</h3></center></p>
+                        </div>
+                    </li>
+                    <li>
+                        <a class="log-btn" onclick="docApproverClick();" id="international">Way Bill Information </a>
+                    </li>
+                    <li>
+                        <a class="log-btn" onclick="docApproverLocalClick();" id="domestic">Way Bill Information Local</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div id="page-wrapper" style="background-color:white;">
+            <div class="row">
+                <div class="col-lg-12">
+                    <br />
+                    <h3 class="page-header" id="Heading"></h3>
+                    <br />
+                </div>
+            </div>
+            <div class="row">
+                <div id="Main">
+                    <div id="Content">
+                    </div>
+                </div>
+                <div id="modalDiv" class="modal">
+                    <div id="modalBody" class="modal-content">
+                        <span class="close" onclick="modalClose()">&times;</span>
+                        <br />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/plugins/jquery-1.10.2.js"></script>
+    <script src="assets/plugins/bootstrap/bootstrap.min.js"></script>
+    <script src="assets/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="assets/plugins/pace/pace.js"></script>
+    <script src="assets/scripts/siminta.js"></script>
+
+    <script src="assets/plugins/morris/raphael-2.1.0.min.js"></script>
+    <script src="assets/plugins/morris/morris.js"></script>
+    <script src="assets/scripts/dashboard-demo.js"></script>
+
+</body>
+
+</html>

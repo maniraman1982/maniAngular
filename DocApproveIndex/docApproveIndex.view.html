@@ -1,0 +1,626 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courier Management System - DocApprover Index</title>
+    <!-- Core CSS - Include with every page -->
+    <link href="assets/plugins/bootstrap/bootstrap.css" rel="stylesheet" />
+    <link href="assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="assets/plugins/pace/pace-theme-big-counter.css" rel="stylesheet" />
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <link href="assets/css/main-style.css" rel="stylesheet" />
+    <!-- Page-Level CSS -->
+    <link href="assets/plugins/morris/morris-0.4.3.min.css" rel="stylesheet" />
+    <style>
+        #header-e1 {
+            float: left;
+            width: 33%;
+        }
+
+        #header-e2 {
+            float: right;
+            width: 33%;
+        }
+
+        #header-e3 {
+            float: left;
+            width: 33%;
+        }
+
+/*Modal Popup*/
+
+  .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            /*z-index: 1; /* Sit on top */
+            padding-top: 100px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: #000;
+                text-decoration: none;
+                cursor: pointer;
+            }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+    <script>
+
+
+        function getUrlVars() {
+            $(window).scrollTop(0);
+    //var vars = [], hash;
+    //var querySplit = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+
+    //var nameSplit = querySplit[0];
+    ////alert(nameSplit);
+    //var uriSplit = querySplit[1];
+    ////alert(uriSplit);
+    //var choiceIdSplit = querySplit[2];
+    ////alert(choiceIdSplit);
+    //window.name = nameSplit;
+    //window.uri = uriSplit.split('uri=');
+    //window.choiceId = choiceIdSplit;
+
+    docApproverClick();
+    }
+
+
+
+
+    window.onload = getUrlVars;
+    var courierURLCount = 1;
+
+
+
+
+
+    function docApproverClick() {
+        $(window).scrollTop(0);
+        $('#PageHead').text('');
+        $.ajax({
+            type: "GET",
+            contentType: 'text/plain;charset=ISO-8859-1',
+            url: "http://61.12.112.11:9090/MasterKube-Application/MasterKube/general/masterkube/User/DocApprover/CourierApprovals",
+            dataType: "xml",
+            success: function (xml) {
+
+                var buttonCtrl = '';
+
+
+                //$('#Content').remove();
+                //$('#Main').append('<div id="Content"></div>');
+             //   $('#Content').append('<input type="button" value="Courier Approvals" onclick="courierApprovalClick();"/>');
+                $(xml).find('Name').each(function () {
+                    var btnValue = $(this).find('url').text();
+                    buttonCtrl = '<span class="CourierURL" style="display:none;">' + btnValue + '</span>';
+                    courierURLCount++;
+                    $('#Main').append(buttonCtrl);
+                });
+            },
+            error: function (data, excep) {
+                ////alert(data.status);
+            }
+        });
+    }
+
+    function courierApprovalClick(courierURLCount) {
+        $(window).scrollTop(0);
+        $('#PageHead').text('Courier Approval List');
+
+        var rows = '';
+        var acceptRow = '';
+        var denyRow = '';
+
+        var singleRow = '';
+
+        var urlContent = 1;
+        //var courierURL = $('#CourierURL-' + courierURLCount).text();
+
+        //alert(courierURL);
+        var courierURLsControl = document.getElementsByClassName('CourierURL');
+
+        var courierURLs = [];
+
+        for (i = 0; i < courierURLsControl.length; i++) {
+            courierURLs[i] = courierURLsControl[i].innerHTML;
+        }
+
+        $('#Content').remove();
+        $('#Main').append('<div id="Content"></div>');
+        $('#Content').append('<table class="table table-striped table-bordered table-hover"><thead><tr><th>Courier Request Date</th><th>Employee Name</th><th>Employee Department</th><th>Project Name</th><th>Document Description</th><th>Purpose Of Courier</th><th>Receiver Address With Telephone</th><th></th><th></th></tr></thead><tbody id="Details"></tbody></table>');
+        for (i = 0; i < courierURLs.length; i++) {
+            $.ajax({
+                type: "GET",
+                contentType: 'text/plain;charset=ISO-8859-1',
+                url: courierURLs[i],
+                dataType: "xml",
+                success: function (xml) {
+                    var rows = '';
+
+
+                    var approveURLs = [];
+                    var denyURLs = [];
+
+                    $(xml).find('Element').each(function () {
+
+                        var packageInfoName = $(this).find('Name').text();
+                        var packageInfoType = $(this).find('Type').text();
+                        var packageInfoValue = $(this).find('Value').text();
+
+                        var reqDates = [];
+                        var empNames = [];
+                        var empDeps = [];
+                        var prjctNames = [];
+                        var docDescs = [];
+                        var purposeofCours = [];
+                        var recvAddrwithTels = [];
+
+                        if (packageInfoName.toLowerCase().includes("packageinformation")) {
+                            $.ajax({
+                                type: "GET",
+                                contentType: 'text/plain;charset=ISO-8859-1',
+                                url: packageInfoValue,
+                                dataType: "xml",
+                                success: function (empxml) {
+
+                                    $(empxml).find('Element').each(function () {
+
+                                        var empDetailName = $(this).find('Name').text();
+                                        var empDetailType = $(this).find('Type').text();
+                                        var empDetailValue = $(this).find('Value').text();
+
+                                        if (empDetailName.toLowerCase().includes("courierrequestdate")) {
+                                            //rows = rows + '<tr><td>' + empDetailValue + '</td>';
+                                            reqDates.push(empDetailValue);
+                                        }
+                                        else if (empDetailName.toLowerCase().includes("employeename")) {
+                                            //rows = rows + '<td>' + empDetailValue + '</td>';
+                                            empNames.push(empDetailValue);
+                                        }
+                                        else if (empDetailName.toLowerCase().includes("employeedepartment")) {
+                                            //rows = rows + '<td>' + empDetailValue + '</td>';
+                                            empDeps.push(empDetailValue);
+                                        }
+                                        else if (empDetailName.toLowerCase().includes("projectname")) {
+                                            //rows = rows + '<td>' + empDetailValue + '</td>';
+                                            prjctNames.push(empDetailValue);
+                                        }
+                                        else if (empDetailName.toLowerCase().includes("documentdescription")) {
+                                            //rows = rows + '<td>' + empDetailValue + '</td>';
+                                            docDescs.push(empDetailValue);
+                                        }
+                                        else if (empDetailName.toLowerCase().includes("purposeofcourier")) {
+                                            //rows = rows + '<td>' + empDetailValue + '</td>';
+                                            purposeofCours.push(empDetailValue);
+                                        }
+                                        else if (empDetailName.toLowerCase().includes("receiveraddresswithtelephone")) {
+                                            //rows = rows + '<td>' + empDetailValue + '</td>';
+                                            recvAddrwithTels.push(empDetailValue);
+                                        }
+
+                                        //singleRow = rows + acceptRow + denyRow;
+                                    });
+
+                                    //if ((singleRow.includes('<tr>')) && (singleRow.includes('</tr>'))) {
+                                    //    $('#Details').append(singleRow);
+                                    //}
+
+
+
+                                    for (k = 0; k < reqDates.length; k++) {
+
+                                        singleRow = '<tr><td>' + reqDates[k] + '</td><td>' + empNames[k] + '</td><td>' + empDeps[k] + '</td><td>' + prjctNames[k] + '</td><td>' + docDescs[k] + '</td><td>' + purposeofCours[k] + '</td><td>' + recvAddrwithTels[k] + '</td><td style="text-align:center;"><input type="button" class="btn btn-xs" style="background-color:green;color:white;text-align:center;" value="Approve" onclick="approveClick(' + urlContent + ');"/><span style="display:none;" id="approveURL-' + urlContent + '">' + approveURLs[k] + '</span></td><td style="text-align:center;"><input type="button" class="btn btn-xs" style="background-color:red;color:white;text-align:center;" value="Deny" onclick="denyClick(' + urlContent + ');"/><span id="denyURL-' + urlContent + '" style="display:none;">' + denyURLs[k] + '</span></td></tr>';
+
+                                        $('#Details').append(singleRow);
+                                        urlContent++;
+                                    }
+
+
+                                },
+                                error: function (data, excep) {
+                                    //alert(data.status);
+                                }
+                            });
+                        }
+                        else if (packageInfoName.toLowerCase().includes("approvecourier")) {
+                            //acceptRow = '<td><input type="button" value="Approve" onclick="approveClick(' + urlContent + ');"/><span id="approveURL-' + urlContent + '" style="display:none">' + packageInfoValue + '</span></td>';
+                            approveURLs.push(packageInfoValue);
+                        }
+                        else if (packageInfoName.toLowerCase().includes("denycourier")) {
+                            //denyRow = '<td><input type="button" value="Deny" onclick="denyClick(' + urlContent + ');"/><span id="denyURL-' + urlContent + '" style="display:none">' + packageInfoValue + '</span></td></tr>';
+                            denyURLs.push(packageInfoValue);
+
+                        }
+                        //urlContent++;
+                    });
+                },
+                error: function (data, excep) {
+                    //alert(data.status);
+                }
+            });
+        }
+    }
+
+
+    function approveClick(id) {
+        //alert(id);
+
+        $(window).scrollTop(0);
+        document.getElementById('modalDiv').style.display = "none";
+
+        $('#PageHead').text('Approve Courier');
+        var approveUrl = $('#approveURL-' + id).text();
+
+        $('#Content').remove();
+        $('#Main').append('<div id="Content"></div>');
+
+        var chkAsk = approveUrl.split('/');
+
+        var num = 0;
+        //Split Ask using IsNan
+        for (t = 0; t < chkAsk.length; t++) {
+            if (!isNaN(chkAsk[t])) {
+                num = chkAsk[t];
+            }
+        }
+
+        // Default Parameters
+        //ask: true
+        //Process: User
+        //askProcessValue: User
+        //pid: Kannan
+        //askPidValue: Kannan
+        //askActionValue: RequestCourier
+        //Action: RequestCourier
+        //askId: 5
+        //domain: masterkube
+
+
+        // Without Ajax
+        //$('#Content').append('<form action="http://10.10.10.49:9090/MasterKube-Application/action/submitPayLoadService.jsp" method="POST"><input name="ask" value="true" type="hidden" /><input name="Process" value="User" type="hidden" /><input name="askProcessValue" value="User" type="hidden" /><input name="pid" value="DocApprover" type="hidden" /><input name="askPidValue" value="DocApprover" type="hidden" /><input name="askActionValue" value="ApproveCourier" type="hidden" /><input name="Action" value="ApproveCourier" type="hidden" /><input name="askId" value="' + num + '" type="hidden" /><input name="domain" value="masterkube" type="hidden" /><label>CourierRequestApproveDate</label><input id="CourierRequestApproveDateControl" type="date" /><input id="CourierRequestApproveDateHidden" name="CourierRequestApproveDate" type="hidden" /><br/><br/><input type="submit" value="submit" /></form>');
+
+        //With Ajax
+        $('#Content').append('<div align="center"><div><br><label>Courier Request Approve Date&nbsp;&nbsp;&nbsp;</label><input id="CourierRequestApproveDateControl" style="padding: 6px 12px;border: 1px solid #ccc;border-radius: 4px;line-height: 20px;" type="date"><input id="CourierRequestApproveDateHidden" name="CourierRequestApproveDate" type="hidden" /><br><br><input id="Approvebtn" class="btn" style="background-color:green;color:white;" type="submit" value="Approve"><br/><br/><img src="loading.gif" id="loadingImage" style="width:30px;height:30px;display:none;"></div><input name="ask" value="true" type="hidden" /><input name="Process" value="User" type="hidden" /><input name="askProcessValue" value="User" type="hidden" /><input name="pid" value="DocApprover" type="hidden" /><input name="askPidValue" value="DocApprover" type="hidden" /><input name="askActionValue" value="ApproveCourier" type="hidden" /><input name="Action" value="ApproveCourier" type="hidden" /><input name="askId" value="' + num + '" type="hidden" /><input name="domain" value="masterkube" type="hidden" /></div><div id="MsgDiv"></div>');
+
+        $('#CourierRequestApproveDateControl').change(function () {
+            var dateFormat = $('#CourierRequestApproveDateControl').val().split('-');
+            $('#CourierRequestApproveDateHidden').val(dateFormat[2] + '/' + dateFormat[1] + '/' + dateFormat[0]);
+        });
+
+        $('#Approvebtn').click(function () {
+
+            //alert($('#CourierRequestApproveDateHidden').val());
+
+            document.getElementById('loadingImage').style.display = 'block';
+
+            $.ajax({
+                type: "POST",
+                url: "http://61.12.112.11:9090/MasterKube-Application/action/submitPayLoadService.jsp",
+                data: {
+                    CourierRequestApproveDate: $('#CourierRequestApproveDateHidden').val(),
+                    ask: true,
+                    Process: "User",
+                    askProcessValue: "User",
+                    pid: "docapprover",
+                    askPidValue: "docapprover",
+                    askActionValue: "ApproveCourier",
+                    Action: "ApproveCourier",
+                    askId: num,
+                    domain: "masterkube"
+                },
+                dataType: "text",
+                success: function (data) {
+                    //alert(data);
+                    //alert(data.replace("}", "").split(":")[1].trim());
+                    var chk = data.replace("}", "").split(":")[1].trim();
+                    if (chk == 'true') {
+                        $('#CourierRequestApproveDateHidden').val('');
+                        $('#Msg').remove();
+                        //$('#MsgDiv').append('<div id="Msg"><br><div class="alert alert-success" align="center">Approved Successfully</div></div>');
+                        $('#modalBody').append('<div id="Msg"><br><div class="alert alert-success" style="background-color:green;color:white;"  align="center">Approved Successfully</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                        document.getElementById('modalDiv').style.display = "block";
+                        document.getElementById('loadingImage').style.display = 'none';
+                        //alert('True True');
+                    }
+                    else {
+                        $('#CourierRequestApproveDateHidden').val('');
+                        $('#Msg').remove();
+                        //$('#MsgDiv').append('<div id="Msg"><br><div class="alert alert-danger" align="center">Approved Failed</div></div>');
+                        $('#modalBody').append('<div id="Msg"><br><div class="alert alert-danger" style="background-color:red;color:white;" align="center">Approved Failed</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                        document.getElementById('modalDiv').style.display = "block";
+                        document.getElementById('loadingImage').style.display = 'none';
+                    }
+                },
+                failure: function (data) {
+                    alert("Approved Failed");
+                },
+                error: function (data, assd, sd) {
+                    //alert('Error -' + assd + '-' + sd);
+                    $('#CourierRequestApproveDateHidden').val('');
+                    $('#Msg').remove();
+                    //$('#MsgDiv').append('<div id="Msg"><br><div class="alert alert-danger" align="center">Approved Failed</div></div>');
+                    $('#modalBody').append('<div id="Msg"><br><div class="alert alert-danger" style="background-color:red;color:white;" align="center">Approved Failed</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                    document.getElementById('modalDiv').style.display = "block";
+                    document.getElementById('loadingImage').style.display = 'none';
+                    //alert("An error occurred while processing XML file.");
+                }
+            });
+            return false;
+        });
+
+
+    }
+
+    function denyClick(id) {
+
+        $(window).scrollTop(0);
+        document.getElementById('modalDiv').style.display = "none";
+
+        $('#PageHead').text('Deny Courier');
+
+        var denyUrl = $('#denyURL-' + id).text();
+
+        $('#Content').remove();
+        $('#Main').append('<div id="Content"></div>');
+
+        var chkAsk = denyUrl.split('/');
+
+        var num = 0;
+        //Split Ask using IsNan
+        for (t = 0; t < chkAsk.length; t++) {
+            if (!isNaN(chkAsk[t])) {
+                num = chkAsk[t];
+            }
+        }
+
+        // Default Parameters
+        //ask: true
+        //Process: User
+        //askProcessValue: User
+        //pid: Kannan
+        //askPidValue: Kannan
+        //askActionValue: RequestCourier
+        //Action: RequestCourier
+        //askId: 5
+        //domain: masterkube
+
+
+        // Without Ajax
+        //$('#Content').append('<form action="http://10.10.10.49:9090/MasterKube-Application/action/submitPayLoadService.jsp" method="POST"><input name="ask" value="true" type="hidden" /><input name="Process" value="User" type="hidden" /><input name="askProcessValue" value="User" type="hidden" /><input name="pid" value="DocApprover" type="hidden" /><input name="askPidValue" value="DocApprover" type="hidden" /><input name="askActionValue" value="ApproveCourier" type="hidden" /><input name="Action" value="ApproveCourier" type="hidden" /><input name="askId" value="' + num + '" type="hidden" /><input name="domain" value="masterkube" type="hidden" /><label>CourierRequestApproveDate</label><input id="CourierRequestApproveDateControl" type="date" /><input id="CourierRequestApproveDateHidden" name="CourierRequestApproveDate" type="hidden" /><br/><br/><input type="submit" value="submit" /></form>');
+
+        //With Ajax
+        $('#Content').append('<div align="center"><div><br><label>Courier Request Deny Date&nbsp;&nbsp;&nbsp;</label><input id="CourierRequestDenyDateControl" style="padding: 6px 12px;border: 1px solid #ccc;border-radius: 4px;line-height: 20px;" type="date"><input id="CourierRequestDenyDateHidden" name="CourierRequestDenyDate" type="hidden" /><br><br><input id="Denybtn" class="btn" style="background-color:red;color:white;" type="submit" value="Deny"><br/><br/><img src="loading.gif" id="loadingImage" style="width:30px;height:30px;display:none"></div><input name="ask" value="true" type="hidden" /><input name="Process" value="User" type="hidden" /><input name="askProcessValue" value="User" type="hidden" /><input name="pid" value="DocApprover" type="hidden" /><input name="askPidValue" value="DocApprover" type="hidden" /><input name="askActionValue" value="DenyCourier" type="hidden" /><input name="Action" value="DenyCourier" type="hidden" /><input name="askId" value="' + num + '" type="hidden" /><input name="domain" value="masterkube" type="hidden" /></div><div id="MsgDiv"></div>');
+
+        $('#CourierRequestDenyDateControl').change(function () {
+            var dateFormat = $('#CourierRequestDenyDateControl').val().split('-');
+            $('#CourierRequestDenyDateHidden').val(dateFormat[2] + '/' + dateFormat[1] + '/' + dateFormat[0]);
+        });
+
+        $('#Denybtn').click(function () {
+
+            //alert($('#CourierRequestApproveDateHidden').val());
+
+            document.getElementById('loadingImage').style.display = 'block';
+
+            $.ajax({
+                type: "POST",
+                url: "http://61.12.112.11:9090/MasterKube-Application/action/submitPayLoadService.jsp",
+                data: {
+                    CourierRequestDenyDate: $('#CourierRequestDenyDateHidden').val(),
+                    ask: true,
+                    Process: "User",
+                    askProcessValue: "User",
+                    pid: "docapprover",
+                    askPidValue: "docapprover",
+                    askActionValue: "DenyCourier",
+                    Action: "DenyCourier",
+                    askId: num,
+                    domain: "masterkube"
+                },
+                dataType: "text",
+                success: function (data) {
+                    //alert(data);
+                    //alert(data.replace("}", "").split(":")[1].trim());
+                    var chk = data.replace("}", "").split(":")[1].trim();
+                    if (chk == 'true') {
+                        $('#CourierRequestApproveDateHidden').val('');
+                        $('#Msg').remove();
+                        //$('#MsgDiv').append('<div id="Msg"><br><div class="alert alert-success" align="center">Denied Successfully</div></div>');
+                        $('#modalBody').append('<div id="Msg"><br><div class="alert alert-success" style="background-color:green;color:white;" align="center">Denied Successfully</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                        document.getElementById('modalDiv').style.display = "block";
+                        document.getElementById('loadingImage').style.display = 'none';
+                        //alert('True True');
+                    }
+                    else {
+                        $('#CourierRequestDenyDateHidden').val('');
+                        $('#Msg').remove();
+                        //$('#MsgDiv').append('<div id="Msg"><br><div class="alert alert-danger" align="center">Denied Failed</div></div>');
+                        $('#modalBody').append('<div id="Msg"><br><div class="alert alert-danger" style="background-color:red;color:white;" align="center">Denied Failed</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                        document.getElementById('modalDiv').style.display = "block";
+                        document.getElementById('loadingImage').style.display = 'none';
+                    }
+                },
+                failure: function (data) {
+                    alert("Denied Failed");
+                },
+                error: function (data, assd, sd) {
+                    //alert('Error -' + assd + '-' + sd);
+                    $('#CourierRequestDenyDateHidden').val('');
+                    $('#Msg').remove();
+                    //$('#MsgDiv').append('<div id="Msg"><br><div class="alert alert-danger" align="center">Denied Failed</div></div>');
+                    $('#modalBody').append('<div id="Msg"><br><div class="alert alert-danger" style="background-color:red;color:white;" align="center">Denied Failed</div><div align="center"><input type="button" class="btn btn-primary" value="OK" onclick="modalClose()"/></div></div>');
+                    document.getElementById('modalDiv').style.display = "block";
+                    document.getElementById('loadingImage').style.display = 'none';
+                    //alert("An error occurred while processing XML file.");
+                }
+            });
+            return false;
+        });
+    }
+
+    function modalClose() {
+        document.getElementById('modalDiv').style.display = "none";
+    }
+
+
+    </script>
+</head>
+<body>
+    <!--  wrapper -->
+    <div id="wrapper"  >
+     
+        <!-- navbar top -->
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="navbar" style="background-color:white;">
+            <div id="header-e1">
+                <br />
+                &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;  <img src="bgr-logo.png" alt="" style="width:100px;height:50px;" />
+                <h1> </h1>
+            </div>
+            <div id="header-e3">
+                <center><h3 style="color:#337ab7">Courier Management System</h3></center>
+            </div>
+            <div id="header-e2">
+                <br />
+                <br />
+                <a href="login.html"><img src="logout.gif" title="Logout" alt="" style="width:30px;height:30px;float:right; margin-right: 2cm;" /> </a>
+                <p> &nbsp;&nbsp; </p>
+            </div>
+
+        </nav>
+        <!-- end navbar top  -->
+        <!-- navbar side -->
+        <nav class="navbar-default navbar-static-side" role="navigation" style="background-color:#337ab7;border-bottom: 1px solid aliceblue">
+            <!-- sidebar-collapse -->
+            <div class="sidebar-collapse" style="background-color:#337ab7;">
+                <!-- side-menu -->
+                <ul class="nav" id="side-menu" style="background-color:#337ab7;">
+                    <li>
+                        <!-- user image section-->
+                        <div class="user-section" style="background-color:#337ab7;border-bottom:#337ab7;">
+                            <div class="user-section" style="background-color:#337ab7;border-bottom:#337ab7;">
+
+
+                                <br />
+                                <p><center><h3>DocApprover</h3></center></p>
+
+
+
+                            </div>
+                        </div>
+                        <!--end user image section-->
+                    </li>
+
+                    <!--<li class="selected" style="background-color:#337ab7;border-bottom: 1px solid aliceblue">
+
+                        <br />
+                        <br />
+                        <br />
+                    </li>-->
+                    <li>
+                        <!--<a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Process<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">-->
+                    <li>
+                        <a onclick="courierApprovalClick()" id="CourierApprove">Courier Approvals</a>
+                    </li>
+
+                </ul>
+                <!-- second-level-items -->
+                <!--</li>-->
+
+            </div>
+            <!-- end sidebar-collapse -->
+        </nav>
+        <!-- end navbar side -->
+        <!--  page-wrapper -->
+        <div id="page-wrapper" style="background-color:white">
+
+            <div class="row">
+                <!-- Page Header -->
+                <div class="col-lg-12">
+                    <h1 class="page-header" id="PageHead"></h1>
+                </div>
+                <!--End Page Header -->
+            </div>
+
+          
+
+            <div class="row">
+                <div class="col-lg-8">
+
+
+
+
+                </div>
+
+                
+                            <div id="Main">
+
+                                <div id="Content">
+                                    <!-- Advanced Tables -->
+                                    <!--<input id="btnDocApprover" class="btn btn-primary" type="button" onclick="docApproverClick()" value="DocApprover" />-->
+                                </div>
+                            </div>
+                <div id="modalDiv" class="modal">
+
+                    <!-- Modal content -->
+                    <div id="modalBody" class="modal-content">
+                        <span class="close" onclick="modalClose()">&times;</span>
+                        <br />
+                    </div>
+
+                </div>
+
+                        </div>
+
+
+
+
+
+
+
+                    </div>
+                    <!-- end page-wrapper -->
+
+                </div>
+                <!-- end wrapper -->
+                <!-- Core Scripts - Include with every page -->
+                <script src="assets/plugins/jquery-1.10.2.js"></script>
+                <script src="assets/plugins/bootstrap/bootstrap.min.js"></script>
+                <script src="assets/plugins/metisMenu/jquery.metisMenu.js"></script>
+                <script src="assets/plugins/pace/pace.js"></script>
+                <script src="assets/scripts/siminta.js"></script>
+                <!-- Page-Level Plugin Scripts-->
+                <script src="assets/plugins/morris/raphael-2.1.0.min.js"></script>
+                <script src="assets/plugins/morris/morris.js"></script>
+                <script src="assets/scripts/dashboard-demo.js"></script>
+
+</body>
+
+</html>
